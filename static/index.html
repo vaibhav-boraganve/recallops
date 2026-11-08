@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RecallOps · Incident copilot that remembers</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">◉</span>
+      <div>
+        <h1>RecallOps</h1>
+        <p>On-call copilot that learns from every incident · Acme Pay SRE</p>
+      </div>
+    </div>
+    <div id="status" class="status"></div>
+  </header>
+
+  <section class="story">
+    <strong>Demo story:</strong>
+    <ol>
+      <li><button class="link" id="seed-btn">Seed incident history</button> (9 past incidents into Hindsight)</li>
+      <li>Triage <b>ALERT-7781</b>: generic answer vs. memory-backed answer</li>
+      <li>Triage <b>ALERT-7815</b>: a failure the team has never seen</li>
+      <li>Record how it was fixed (<button class="link" id="prefill-btn">prefill</button>)</li>
+      <li>Triage <b>ALERT-7840</b>: same failure on another service, now recalled</li>
+    </ol>
+  </section>
+
+  <main>
+    <aside>
+      <h2>Incoming alerts</h2>
+      <div id="alerts"></div>
+      <details class="card">
+        <summary>Paste a custom alert</summary>
+        <form id="custom-alert">
+          <input name="title" placeholder="Alert title" required minlength="5" />
+          <div class="row">
+            <input name="service" placeholder="service (e.g. payments-api)" required />
+            <select name="severity"><option>sev1</option><option selected>sev2</option><option>sev3</option><option>sev4</option></select>
+          </div>
+          <textarea name="details" rows="5" placeholder="Logs, metrics, recent changes..."></textarea>
+          <button type="submit">Triage</button>
+        </form>
+      </details>
+    </aside>
+
+    <section class="workspace">
+      <div id="empty" class="card muted">Select an alert to triage it.</div>
+      <div id="triage" hidden>
+        <div class="card alert-detail">
+          <div class="alert-head">
+            <span id="t-sev" class="sev"></span>
+            <h2 id="t-title"></h2>
+          </div>
+          <pre id="t-details"></pre>
+        </div>
+        <div class="compare">
+          <div class="card brief">
+            <h3>Without memory <span class="tag">generic LLM</span></h3>
+            <div id="b-without" class="md"></div>
+          </div>
+          <div class="card brief memory">
+            <h3>With Hindsight memory <span class="tag good">RecallOps</span></h3>
+            <div id="b-with" class="md"></div>
+            <div id="cited" class="cited"></div>
+            <div class="feedback">
+              <input id="fb-notes" placeholder="What actually happened? (optional)" />
+              <button data-helpful="true">👍 This worked</button>
+              <button data-helpful="false" class="secondary">👎 Didn't help</button>
+            </div>
+          </div>
+        </div>
+        <details class="card" id="recalled-box" open>
+          <summary>What RecallOps remembered (<span id="recalled-count">0</span>)</summary>
+          <div id="insight" class="insight" hidden></div>
+          <ul id="recalled" class="memories"></ul>
+        </details>
+      </div>
+
+      <details class="card" id="resolution-box">
+        <summary>Record a resolution → teach RecallOps</summary>
+        <form id="resolution">
+          <div class="row">
+            <input name="id" placeholder="INC-2026-1108" required pattern="INC-\d{4}-\d{4}" />
+            <input name="service" placeholder="service" required />
+            <select name="severity"><option>sev1</option><option selected>sev2</option><option>sev3</option><option>sev4</option></select>
+            <input name="minutes_to_resolve" type="number" min="0" placeholder="minutes" />
+          </div>
+          <input name="title" placeholder="Short title" required minlength="5" />
+          <textarea name="symptoms" rows="2" placeholder="Symptoms / alert signals" required></textarea>
+          <textarea name="root_cause" rows="2" placeholder="Root cause" required></textarea>
+          <textarea name="fix_steps" rows="3" placeholder="Fix steps that worked (one per line)" required></textarea>
+          <textarea name="did_not_work" rows="2" placeholder="Tried but did NOT help (one per line)"></textarea>
+          <input name="responder" placeholder="Responder" />
+          <button type="submit">Retain in memory</button>
+        </form>
+      </details>
+
+      <details class="card">
+        <summary>Memory explorer</summary>
+        <form id="search" class="row">
+          <input name="q" placeholder="e.g. idle in transaction, consumer rebalance, certificate" required />
+          <button type="submit">Recall</button>
+        </form>
+        <ul id="search-results" class="memories"></ul>
+      </details>
+    </section>
+  </main>
+
+  <div id="toast" hidden></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
